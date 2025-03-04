@@ -5,7 +5,63 @@ document.addEventListener("DOMContentLoaded", function() {
     const addProductBtn = document.getElementById('addProduct');
     const productTableBody = document.getElementById('productTable').querySelector('tbody');
     const grandTotalDisplay = document.getElementById('grandTotal');
-    let grandTotal = 0;
+  
+    // Array untuk menyimpan produk
+    let products = [];
+  
+    // Load data dari localStorage jika ada
+    function loadProducts() {
+      const storedProducts = localStorage.getItem("products");
+      if(storedProducts) {
+        products = JSON.parse(storedProducts);
+        products.forEach(product => {
+          addProductToTable(product);
+        });
+        updateGrandTotal();
+      }
+    }
+  
+    // Simpan array produk ke localStorage
+    function saveProducts() {
+      localStorage.setItem("products", JSON.stringify(products));
+    }
+  
+    // Update tampilan grand total
+    function updateGrandTotal() {
+      const grandTotal = products.reduce((sum, product) => sum + product.total, 0);
+      grandTotalDisplay.textContent = grandTotal.toFixed(2);
+    }
+  
+    // Buat dan tambahkan baris produk ke tabel
+    function addProductToTable(product) {
+      const tr = document.createElement('tr');
+      tr.setAttribute("data-id", product.id);
+      tr.innerHTML = `
+        <td>${product.image ? `<img src="${product.image}" width="50">` : "No Image"}</td>
+        <td>${product.name}</td>
+        <td>${parseFloat(product.price).toFixed(2)}</td>
+        <td>${product.quantity}</td>
+        <td>${product.location.charAt(0).toUpperCase() + product.location.slice(1)}</td>
+        <td>${parseFloat(product.total).toFixed(2)}</td>
+        <td><button class="delete-btn" data-id="${product.id}">Hapus</button></td>
+      `;
+      productTableBody.appendChild(tr);
+    }
+  
+    // Hapus produk berdasarkan id
+    function deleteProduct(id) {
+      // Hapus dari array produk
+      products = products.filter(product => product.id !== id);
+      // Simpan perubahan ke localStorage
+      saveProducts();
+      // Hapus baris dari tabel
+      const row = productTableBody.querySelector(`tr[data-id="${id}"]`);
+      if(row) {
+        productTableBody.removeChild(row);
+      }
+      // Update grand total
+      updateGrandTotal();
+    }
   
     // Preview gambar saat diupload
     productImage.addEventListener('change', function(event) {
@@ -20,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
   
-    // Tambahkan produk ke dalam tabel
+    // Tambahkan produk ke dalam daftar dan localStorage
     addProductBtn.addEventListener('click', function(){
       const productName = document.getElementById('productName').value.trim();
       const price = parseFloat(document.getElementById('price').value) || 0;
@@ -34,24 +90,39 @@ document.addEventListener("DOMContentLoaded", function() {
         return;
       }
   
-      const tr = document.createElement('tr');
+      // Buat objek produk dengan id unik
+      const product = {
+        id: Date.now().toString(),
+        image: imageSrc,
+        name: productName,
+        price: price,
+        quantity: quantity,
+        location: location,
+        total: totalPrice
+      };
   
-      tr.innerHTML = `
-        <td>${imageSrc ? `<img src="${imageSrc}" width="50">` : "No Image"}</td>
-        <td>${productName}</td>
-        <td>${price.toFixed(2)}</td>
-        <td>${quantity}</td>
-        <td>${location.charAt(0).toUpperCase() + location.slice(1)}</td>
-        <td>${totalPrice.toFixed(2)}</td>
-      `;
+      // Tambahkan produk ke array dan simpan ke localStorage
+      products.push(product);
+      saveProducts();
   
-      productTableBody.appendChild(tr);
+      // Tambahkan baris produk ke tabel
+      addProductToTable(product);
+      updateGrandTotal();
   
-      grandTotal += totalPrice;
-      grandTotalDisplay.textContent = grandTotal.toFixed(2);
-  
+      // Reset form dan preview
       productForm.reset();
       preview.style.display = 'none';
     });
+  
+    // Event delegation untuk tombol hapus produk
+    productTableBody.addEventListener('click', function(e) {
+      if(e.target && e.target.classList.contains('delete-btn')){
+        const id = e.target.getAttribute('data-id');
+        deleteProduct(id);
+      }
+    });
+  
+    // Muat data produk dari localStorage saat halaman dimuat
+    loadProducts();
   });
   
