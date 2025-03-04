@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aplikasi Penghitung Belanja</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Aplikasi Penghitung Belanja</h1>
+    <form id="productForm">
+      <div>
+        <label for="productImage">Gambar Produk:</label>
+        <input type="file" id="productImage" accept="image/*">
+      </div>
+      <div>
+        <img id="preview" src="" alt="Preview Gambar" class="preview">
+      </div>
+      <div>
+        <label for="productName">Nama Produk:</label>
+        <input type="text" id="productName" placeholder="Misal: Kaos Gen Z">
+      </div>
+      <div>
+        <label for="price">Harga per Produk (Rp):</label>
+        <input type="number" id="price" placeholder="Misal: 50000" step="0.01">
+      </div>
+      <div>
+        <label for="quantity">Jumlah Barang (pcs):</label>
+        <input type="number" id="quantity" min="1" value="1">
+      </div>
+      <div>
+        <label for="location">Lokasi Beli:</label>
+        <select id="location">
+          <option value="online">Online</option>
+          <option value="offline">Offline</option>
+        </select>
+      </div>
+      <button type="button" id="addProduct">Tambah Produk</button>
+    </form>
+    
+    <h2>Daftar Produk</h2>
+    <table id="productTable">
+      <thead>
+        <tr>
+          <th>Gambar</th>
+          <th>Nama Produk</th>
+          <th>Harga (Rp)</th>
+          <th>Jumlah</th>
+          <th>Lokasi</th>
+          <th>Total (Rp)</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    
+    <h2>Total Belanja: Rp <span id="grandTotal">0</span></h2>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
