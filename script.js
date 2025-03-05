@@ -6,11 +6,9 @@ document.addEventListener("DOMContentLoaded", function() {
   const productTableBody = document.getElementById('productTable').querySelector('tbody');
   const grandTotalDisplay = document.getElementById('grandTotal');
 
-  // Array untuk menyimpan produk dan variabel untuk mode edit
   let products = [];
   let currentEditId = null;
 
-  // Render ulang seluruh tabel berdasarkan array produk
   function renderTable() {
     productTableBody.innerHTML = "";
     products.forEach(product => {
@@ -19,7 +17,6 @@ document.addEventListener("DOMContentLoaded", function() {
     updateGrandTotal();
   }
 
-  // Load data dari localStorage
   function loadProducts() {
     const storedProducts = localStorage.getItem("products");
     if(storedProducts) {
@@ -33,18 +30,15 @@ document.addEventListener("DOMContentLoaded", function() {
     renderTable();
   }
 
-  // Simpan array produk ke localStorage
   function saveProducts() {
     localStorage.setItem("products", JSON.stringify(products));
   }
 
-  // Update tampilan grand total
   function updateGrandTotal() {
     const grandTotal = products.reduce((sum, product) => sum + product.total, 0);
     grandTotalDisplay.textContent = grandTotal.toFixed(2);
   }
 
-  // Tambahkan satu baris produk ke tabel
   function addProductToTable(product) {
     const tr = document.createElement('tr');
     tr.setAttribute("data-id", product.id);
@@ -56,29 +50,27 @@ document.addEventListener("DOMContentLoaded", function() {
       <td>${product.location.charAt(0).toUpperCase() + product.location.slice(1)}</td>
       <td>${parseFloat(product.total).toFixed(2)}</td>
       <td>
-        <button class="edit-btn" data-id="${product.id}">Edit</button>
-        <button class="delete-btn" data-id="${product.id}">Hapus</button>
+        <button class="btn btn-warning edit-btn" data-id="${product.id}">Edit</button>
+        <button class="btn btn-danger delete-btn" data-id="${product.id}">Hapus</button>
       </td>
     `;
     productTableBody.appendChild(tr);
   }
 
-  // Hapus produk berdasarkan id, lalu render ulang tabel
   function deleteProduct(id) {
     products = products.filter(product => product.id !== id);
     saveProducts();
     renderTable();
   }
 
-  // Reset form dan preview, serta mode edit
   function resetForm() {
     productForm.reset();
     preview.src = "";
-    preview.style.display = 'none';
+    preview.classList.add('d-none');
     currentEditId = null;
     addProductBtn.textContent = "Tambah Produk";
   }
-
+  
   // Preview gambar saat diupload
   productImage.addEventListener('change', function(event) {
     const file = event.target.files[0];
@@ -86,20 +78,22 @@ document.addEventListener("DOMContentLoaded", function() {
       const reader = new FileReader();
       reader.onload = function(e) {
         preview.src = e.target.result;
-        preview.style.display = 'block';
-      }
+        preview.classList.remove('d-none');
+      }      
       reader.readAsDataURL(file);
     }
   });
 
-  // Tambahkan atau update produk ketika tombol diklik
+  // Event handler untuk tambah atau update produk
   addProductBtn.addEventListener('click', function(){
     const productName = document.getElementById('productName').value.trim();
     const price = parseFloat(document.getElementById('price').value) || 0;
     const quantity = parseInt(document.getElementById('quantity').value) || 1;
-    const location = document.getElementById('location').value;
+    const purchaseLocation = document.getElementById('location').value;
     const imageSrc = preview.src || '';
     const totalPrice = price * quantity;
+
+    console.log('Menambahkan produk:', { productName, price, quantity, purchaseLocation, imageSrc, totalPrice });
 
     if(productName === "" || price <= 0){
       alert("Pastikan nama produk terisi dan harga lebih dari 0.");
@@ -107,30 +101,28 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     if (currentEditId) {
-      // Update produk yang sudah ada
       products = products.map(product => {
         if(product.id === currentEditId) {
           return {
             ...product,
-            image: imageSrc || product.image, // jika gambar baru tidak diupload, tetap gunakan gambar lama
+            image: imageSrc || product.image,
             name: productName,
             price: price,
             quantity: quantity,
-            location: location,
+            location: purchaseLocation,
             total: totalPrice
           };
         }
         return product;
       });
     } else {
-      // Tambahkan produk baru
       const product = {
         id: Date.now().toString(),
         image: imageSrc,
         name: productName,
         price: price,
         quantity: quantity,
-        location: location,
+        location: purchaseLocation,
         total: totalPrice
       };
       products.push(product);
@@ -140,33 +132,30 @@ document.addEventListener("DOMContentLoaded", function() {
     resetForm();
   });
 
-  // Event delegation untuk tombol hapus dan edit produk
+  // Event delegation untuk tombol edit dan hapus
   productTableBody.addEventListener('click', function(e) {
     const id = e.target.getAttribute('data-id');
     if(e.target && e.target.classList.contains('delete-btn')){
       deleteProduct(id);
     } else if(e.target && e.target.classList.contains('edit-btn')){
-      // Cari produk yang akan diedit
       const productToEdit = products.find(product => product.id === id);
       if(productToEdit) {
         currentEditId = id;
-        // Isi form dengan data produk yang akan diedit
         document.getElementById('productName').value = productToEdit.name;
         document.getElementById('price').value = productToEdit.price;
         document.getElementById('quantity').value = productToEdit.quantity;
         document.getElementById('location').value = productToEdit.location;
         if(productToEdit.image) {
           preview.src = productToEdit.image;
-          preview.style.display = 'block';
+          preview.classList.remove('d-none');
         } else {
           preview.src = "";
-          preview.style.display = 'none';
-        }
+          preview.classList.add('d-none');
+        }        
         addProductBtn.textContent = "Simpan Perubahan";
       }
     }
   });
 
-  // Muat data produk dari localStorage saat halaman dimuat
   loadProducts();
 });
